@@ -122,7 +122,6 @@ public class ReactiveServiceApplication {
 //        testMethodWithPublisherAsInput();
 //        thenTests();
 //        testFlux();
-//        filterStuff();
 //        testGregorianCalendar();
 //        testLocalDateTime();
 //        switchIfEmptyTests();
@@ -138,6 +137,7 @@ public class ReactiveServiceApplication {
 //        testArraysAndStreamsAndListOps();
 //        testCollectAndNext();
 //        testMisc();
+//        testInterviewCode();
     } // main
     //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -946,15 +946,22 @@ public class ReactiveServiceApplication {
 //                .log()
 //                .subscribe(System.out::println);
 
-        Flux.empty()
-                .filter(a -> true) // flux is empty so filter is skipped and sie is called directly.
-                .switchIfEmpty(Flux.defer(() -> { // sie is called because the source is empty.
-                    System.out.println("==> in sie...");
-                    return Flux.just(new Event());
-                }))
-                .log()
-                .subscribe(System.out::println);
+//        Flux.empty()
+//                .filter(a -> true) // flux is empty so filter is skipped and sie is called directly.
+//                .switchIfEmpty(Flux.defer(() -> { // sie is called because the source is empty.
+//                    System.out.println("==> in sie...");
+//                    return Flux.just(new Event());
+//                }))
+//                .log()
+//                .subscribe(System.out::println);
 
+        // any(predicate): is a filter that only emits a single true if any of the items marches the predicate. Otherwise false.
+        // filter: only allows "true" thru. if nothing is emitted from filter, sie is called just like in case of map.
+        // any and filter: any must be used with filter to make sense. If no filter is applied, then true or false, the next step is run anyway.
+        fluxDataEvents.any(event -> false).map(aBoolean -> {
+            System.out.println("Here...");
+            return aBoolean;
+        }).switchIfEmpty(Mono.just(false)).subscribe(System.out::println);
 //        Flux.empty().filter(o -> {
 //            System.out.println("Inside filter: will not be invoked");
 //            return true;
@@ -1718,7 +1725,7 @@ public class ReactiveServiceApplication {
     private static void testOptional() {
         // optional is designed to get rid of defensive if/else blocks checking for null. But Optional should only be used as return type since it is very mem-intensive.
         // how it is used: either you get it when calling a lib method or you create optional manually from a datatype by wrapping it using of or ofNullable.
-        // once you have an optional, map is only called if the optional content is not empty. Otherwise orElse is called.
+        // once you have an optional, map is only called if the optional content is present. Otherwise orElse is called.
         // Basically put if clause content inside map and else-clause content inside orElse.
         System.out.println("==> isOptionalTest: enter");
         // another way of declaring optional:
@@ -1886,6 +1893,13 @@ public class ReactiveServiceApplication {
         for (int i = 0; i < 30; i++) {
             System.out.println("==> " + i + " % " + j + ": " + (i % j));
         }
+    }
+
+    private static void testInterviewCode() {
+        int[] intArray = new int[]{1, 2, 3};
+        System.out.println("Sum: " + Arrays.stream(intArray).filter(i -> i >= 2)
+                .map(i -> i * 3)
+                .sum());
     }
 
 }
