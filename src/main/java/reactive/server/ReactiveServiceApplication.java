@@ -97,10 +97,13 @@ public class ReactiveServiceApplication {
     private static Flux<Integer> fluxIntegerWithInterval = Flux.zip(fluxDataInt, fluxIntervalLong).map(Tuple2::getT1);
     private static Flux<Object> fluxWithErrorAtTheEnd = Flux.concat(fluxDataStr, fluxError);
 
+    private static Flux<Mono<String>> fluxOfMonosOfTypeString = Flux.just(Mono.just("String 1"), Mono.just("String 2"), Mono.just("String 3"));
+
     //////////////////////////////////////////////////////////////////////////////////////////
     public static void main(String[] args) {
         SpringApplication.run(ReactiveServiceApplication.class, args);
 
+//        testObject();
 //        testBoolean();
 //        testReduce();
 //        testFluxMerge();
@@ -122,11 +125,12 @@ public class ReactiveServiceApplication {
 //        testMethodWithPublisherAsInput();
 //        thenTests();
 //        testFlux();
+//        testFluxOfMonosOftypeString();
 //        testGregorianCalendar();
 //        testLocalDateTime();
 //        switchIfEmptyTests();
 //        testOptional();
-//        testStreamFilterWithPredicate();
+        testStreamFilterWithPredicate();
 //        testFluxFilterWithPredicate();
 //        testDoOnXXX();
 //        testOptionalFilterWithPredicate();
@@ -139,6 +143,21 @@ public class ReactiveServiceApplication {
 //        testMisc();
 //        testInterviewCode();
     } // main
+
+    private static void testObject() {
+        Object obj;
+
+        // put whatever in an object type as long as you know how to read it on the receiving end
+        obj = "test";
+        System.out.println("==> obj is string: " + obj);
+        obj = "\"hello\":\"test\"";
+        System.out.println("==> obj is string with double quotations: " + obj);
+
+        obj = Integer.valueOf(1);
+        System.out.println("==> obj is integer: " + obj);
+        obj = new Event(1, new Date());
+        System.out.println("==> obj is event: " + obj);
+    }
     //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -410,6 +429,17 @@ public class ReactiveServiceApplication {
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
+
+    private static void testFluxOfMonosOftypeString() {
+        // flatmap flattens the publisher so in the next step you use map, unless inside the flatmap, again, you return another publisher.
+        fluxOfMonosOfTypeString.flatMap(mono -> { // here the input is mono
+                    return mono;
+                })
+                .map(s -> { // here the input is the value of the mono, which has been flattened by the flatmap operation.
+                    return s;
+                })
+                .subscribe(System.out::println);
+    }
 
     // a quick example of how mono/flux works
     private static void testMonosAndFluxes() {
@@ -905,6 +935,30 @@ public class ReactiveServiceApplication {
         myNumbersDividableBy3.stream().forEach(System.out::println);
         System.out.println("==>");
         listOfInt.stream().filter(n -> n != 5  && n != 9).forEach(System.out::println);
+
+        // create and initialize a list of persons
+        List<Person> personList = new ArrayList<>() {{
+            add(new Person(12, "Steve", "bb"));
+//            add(new Person(1, "John", "aa"));
+        }};
+
+        Optional<Person> product = getProduct(personList);
+        product.ifPresent(System.out::println);
+    }
+
+    private static Optional<Person> getProduct(List<Person> products) {
+        return products.stream()
+                .findFirst()
+                .flatMap(product -> {
+                    if (products.size() == 1) {
+                        return Optional.of(product);
+                    } else {
+                        return products.stream()
+                                .filter(p -> p.getId() == 1)
+                                .findFirst()
+                                .or(() -> Optional.of(products.get(0).getId() == 1 ? products.get(1) : products.get(0)));
+                    }
+                });
     }
 
     private static void testFluxFilterWithPredicate() {
@@ -1901,6 +1955,8 @@ public class ReactiveServiceApplication {
                 .map(i -> i * 3)
                 .sum());
     }
+
+
 
 }
 
